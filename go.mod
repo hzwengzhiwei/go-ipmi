@@ -1,6 +1,6 @@
-module github.com/bougou/go-ipmi
+module github.com/hzwengzhiwei/go-ipmi
 
-replace github.com/bougou/go-ipmi v0.0.0 => ./
+replace github.com/hzwengzhiwei/go-ipmi v0.0.0 => ./
 
 go 1.20
 

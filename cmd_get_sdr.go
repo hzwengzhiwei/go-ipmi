@@ -1,6 +1,10 @@
 package ipmi
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
 
 // 33.12 Get SDR Command
 type GetSDRRequest struct {
@@ -181,6 +185,11 @@ func (c *Client) GetSDRsMap() (SDRMapBySensorNumber, error) {
 			return nil, fmt.Errorf("ParseSDR failed, err: %s", err)
 		}
 
+		recordID = sdr.NextRecordID
+		if recordID == 0xffff {
+			break
+		}
+
 		var generatorID GeneratorID
 		var sensorNumber SensorNumber
 
@@ -202,12 +211,72 @@ func (c *Client) GetSDRsMap() (SDRMapBySensorNumber, error) {
 			out[generatorID] = make(map[SensorNumber]*SDR)
 		}
 		out[generatorID][sensorNumber] = sdr
+	}
+
+	return out, nil
+}
+
+type SDRSensorNameMapBySensorNumber map[GeneratorID]map[SensorNumber]string
+
+func GetSDRSensorNameMap(client *Client, sdr_file string) SDRSensorNameMapBySensorNumber {
+	if sdr_file != "" {
+		b, err := os.ReadFile(sdr_file)
+		if err == nil {
+			sdrMap := make(SDRSensorNameMapBySensorNumber)
+			err = json.Unmarshal(b, &sdrMap)
+			if err == nil {
+				return sdrMap
+			}
+		}
+	}
+
+	var sdrMap = make(map[GeneratorID]map[SensorNumber]string)
+	var recordID uint16 = 0
+	for {
+		res, err := client.GetSDR(recordID)
+		if err != nil {
+			// fmt.Printf("GetSDR for recordID (%#0x) failed, err: %s", recordID, err)
+			break
+		}
+		sdr, err := ParseSDR(res.RecordData, res.NextRecordID)
+		if err != nil {
+			// fmt.Printf("ParseSDR failed, err: %s", err)
+			break
+		}
 
 		recordID = sdr.NextRecordID
 		if recordID == 0xffff {
 			break
 		}
+
+		var generatorID GeneratorID
+		var sensorNumber SensorNumber
+
+		recordType := sdr.RecordHeader.RecordType
+		switch recordType {
+		case SDRRecordTypeFullSensor:
+			generatorID = sdr.Full.GeneratorID
+			sensorNumber = sdr.Full.SensorNumber
+		case SDRRecordTypeCompactSensor:
+			generatorID = sdr.Compact.GeneratorID
+			sensorNumber = sdr.Compact.SensorNumber
+		}
+		if recordType != SDRRecordTypeFullSensor && recordType != SDRRecordTypeCompactSensor {
+			// ignored the SDR
+			continue
+		}
+		if _, ok := sdrMap[generatorID]; !ok {
+			sdrMap[generatorID] = make(map[SensorNumber]string)
+		}
+		sdrMap[generatorID][sensorNumber] = sdr.SensorName()
 	}
 
-	return out, nil
+	if sdr_file != "" {
+		b, err := json.Marshal(sdrMap)
+		if err == nil {
+			os.WriteFile(sdr_file, b, 0644)
+		}
+	}
+
+	return sdrMap
 }

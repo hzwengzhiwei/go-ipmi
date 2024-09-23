@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/bougou/go-ipmi"
+	"github.com/hzwengzhiwei/go-ipmi"
 	"github.com/spf13/cobra"
 )
 

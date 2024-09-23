@@ -3,16 +3,16 @@
 <meta name="keywords" content="ipmi, go, golang, bmc">
 <meta name="google-site-verification" content="Ejz48wAig8QjFaggJoluq4crKN7x7Jbi_VnEqFXQIhs" />
 
-# [go-ipmi](https://github.com/bougou/go-ipmi)
+# [go-ipmi](https://github.com/hzwengzhiwei/go-ipmi)
 
-[`go-ipmi`](https://github.com/bougou/go-ipmi) is a pure golang native IPMI library. It DOES NOT wraps `ipmitool`.
+[`go-ipmi`](https://github.com/hzwengzhiwei/go-ipmi) is a pure golang native IPMI library. It DOES NOT wraps `ipmitool`.
 
 ## Usage
 
 ```go
 import (
 	"fmt"
-	"github.com/bougou/go-ipmi"
+	"github.com/hzwengzhiwei/go-ipmi"
 )
 
 func main() {

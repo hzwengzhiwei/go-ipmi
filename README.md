@@ -11,7 +11,7 @@
 ```go
 import (
 	"fmt"
-	"github.com/bougou/go-ipmi"
+	"github.com/hzwengzhiwei/go-ipmi"
 )
 
 func main() {
