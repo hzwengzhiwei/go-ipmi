@@ -2,16 +2,16 @@
 <meta name="description" content="Go IPMI library">
 <meta name="keywords" content="ipmi, go, golang, bmc">
 
-# [go-ipmi](https://github.com/bougou/go-ipmi)
+# [go-ipmi](https://github.com/hzwengzhiwei/go-ipmi)
 
-[`go-ipmi`](https://github.com/bougou/go-ipmi) is a pure Golang native IPMI library. It DOES NOT wrap `ipmitool`.
+[`go-ipmi`](https://github.com/hzwengzhiwei/go-ipmi) is a pure Golang native IPMI library. It DOES NOT wrap `ipmitool`.
 
 ## Usage
 
 ```go
 import (
 	"fmt"
-	"github.com/bougou/go-ipmi"
+	"github.com/hzwengzhiwei/go-ipmi"
 )
 
 func main() {
@@ -424,3 +424,8 @@ The implementation logic of IPMI commands is largely consistent. See [Contributi
 - [Platform Management FRU Information Storage Definition](https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/ipmi-platform-mgt-fru-info-storage-def-v1-0-rev-1-3-spec-update.pdf)
 - [PC SDRAM Serial Presence Detect (SPD) Specification](https://cdn.hackaday.io/files/10119432931296/Spdsd12b.pdf)
 - [DCMI Group Extension Specification v1.5](https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/dcmi-v1-5-rev-spec.pdf)
+
+## 更新说明
+1. cmd_get_sdr.go添加`GetSDRSensorNameMap`
+2. cmd_get_sensors.go添加`GetSpecificSensorsBySensorName`
+3. cmd_get_frus.go添加`GetSpecificFRUsByDeviceName`

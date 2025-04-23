@@ -10,7 +10,7 @@ permalink: pretty
 repos:
 - name: go-ipmi
   description: IPMI library in pure Go
-  url: https://github.com/bougou/go-ipmi
+  url: https://github.com/hzwengzhiwei/go-ipmi
 
 brand_color: "#DA253B"
 

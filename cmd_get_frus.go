@@ -341,3 +341,54 @@ func (c *Client) GetFRUAreaMultiRecords(ctx context.Context, deviceID uint8, off
 
 	return records, nil
 }
+
+func (c *Client) GetSpecificFRUsByDeviceName(ctx context.Context, funRegexp func(string) bool) ([]*FRU, error) {
+	var frus = make([]*FRU, 0)
+
+	// Do a Get Device ID command to determine device support
+	_, err := c.GetDeviceID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("GetDeviceID failed, err: %w", err)
+	}
+
+	// Walk the SDRs to look for FRU Devices and Management Controller Devices.
+	// For FRU devices, print the FRU from the SDR locator record.
+	// For MC devices, issue FRU commands to the satellite controller to print FRU data.
+	sdrs, err := c.GetSDRs(ctx, SDRRecordTypeFRUDeviceLocator, SDRRecordTypeManagementControllerDeviceLocator)
+	if err != nil {
+		return nil, fmt.Errorf("GetSDRS failed, err: %w", err)
+	}
+
+	for _, sdr := range sdrs {
+		switch sdr.RecordHeader.RecordType {
+
+		case SDRRecordTypeFRUDeviceLocator:
+			deviceName := string(sdr.FRUDeviceLocator.DeviceIDBytes)
+			if !funRegexp(deviceName) {
+				continue
+			}
+			accessLUN := sdr.FRUDeviceLocator.AccessLUN                             // LUN
+			deviceIDOrSlaveAddress := sdr.FRUDeviceLocator.FRUDeviceID_SlaveAddress // device
+			fruLocation := sdr.FRUDeviceLocator.Location()
+
+			// see 38. Accessing FRU Devices
+			switch fruLocation {
+
+			case FRULocation_MgmtController:
+				if accessLUN == 0x00 && deviceIDOrSlaveAddress == 0x00 {
+					// this is the Builtin FRU device, already got
+					continue
+				}
+
+				// Todo, accessed using Read/Write FRU commands at LUN other than 00b
+				fru, err := c.GetFRU(ctx, deviceIDOrSlaveAddress, deviceName)
+				if err != nil {
+					return nil, fmt.Errorf("GetFRU sdr device id (%#02x) failed, err: %s", deviceIDOrSlaveAddress, err)
+				}
+				frus = append(frus, fru)
+			}
+		}
+	}
+
+	return frus, nil
+}

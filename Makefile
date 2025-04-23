@@ -8,9 +8,9 @@ OUTPUT_DIR := $(PWD)/_output
 GOOS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 GOARCH ?= amd64
 
-LDFLAGS := $(LDFLAGS) -X github.com/bougou/go-ipmi/cmd/goipmi/commands.Version=$(APP_VERSION)
-LDFLAGS := $(LDFLAGS) -X github.com/bougou/go-ipmi/cmd/goipmi/commands.Commit=$(GIT_COMMIT)
-LDFLAGS := $(LDFLAGS) -X github.com/bougou/go-ipmi/cmd/goipmi/commands.BuildAt=$(BUILD_TIME)
+LDFLAGS := $(LDFLAGS) -X github.com/hzwengzhiwei/go-ipmi/cmd/goipmi/commands.Version=$(APP_VERSION)
+LDFLAGS := $(LDFLAGS) -X github.com/hzwengzhiwei/go-ipmi/cmd/goipmi/commands.Commit=$(GIT_COMMIT)
+LDFLAGS := $(LDFLAGS) -X github.com/hzwengzhiwei/go-ipmi/cmd/goipmi/commands.BuildAt=$(BUILD_TIME)
 
 PATH := $(BINDIR):$(PATH)
 SHELL := env PATH='$(PATH)' /bin/sh

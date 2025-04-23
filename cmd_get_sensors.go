@@ -304,3 +304,52 @@ func _canIgnoreSensorErr(err error) error {
 
 	return canIgnore(err)
 }
+
+// 获取fan的sensor
+// funRegexp参考：
+//
+//	func funRegexp(sdr string) bool {
+//		var (
+//			// FAN0_R_Speed,Fan3 RPM
+//			fanReg1 = regexp.MustCompile(`^(Fan|FAN)\d+.*?(?:Speed|RPM)`)
+//			// FAN_0,Fan1
+//			fanReg2 = regexp.MustCompile(`^(Fan|FAN)_?\d+$`)
+//		)
+//		return (strings.HasPrefix(sdr, "Fan") || strings.HasPrefix(sdr, "FAN")) && (fanReg1.MatchString(sdr) || fanReg2.MatchString(sdr))
+//	}
+func (c *Client) GetSpecificSensorsBySensorName(ctx context.Context, funRegexp func(string) bool) ([]*Sensor, error) {
+	var out = make([]*Sensor, 0)
+	var recordID uint16 = 0
+	for {
+		res, err := c.GetSDR(ctx, recordID)
+		if err != nil {
+			return nil, fmt.Errorf("GetSDR failed for recordID (%#02x), err: %s", recordID, err)
+		}
+		sdr, err := ParseSDR(res.RecordData, res.NextRecordID)
+		if err != nil {
+			return nil, fmt.Errorf("ParseSDR failed, err: %s", err)
+		}
+
+		// NextRecordID == 0xffff 退出循环
+		recordID = sdr.NextRecordID
+		if funRegexp(sdr.SensorName()) {
+			if err := c.enhanceSDR(ctx, sdr); err != nil {
+				return nil, fmt.Errorf("enhanceSDR failed, err: %s", err)
+			}
+			sensor, err := c.sdrToSensor(ctx, sdr)
+			if err == nil {
+				out = append(out, sensor)
+			}
+			if recordID == 0xffff {
+				break
+			}
+		} else {
+			if recordID == 0xffff {
+				break
+			}
+			continue
+		}
+	}
+
+	return out, nil
+}

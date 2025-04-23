@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bougou/go-ipmi/cmd/goipmi/commands"
+	"github.com/hzwengzhiwei/go-ipmi/cmd/goipmi/commands"
 )
 
 func main() {

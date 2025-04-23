@@ -283,3 +283,52 @@ func (c *Client) GetSDRsMap(ctx context.Context) (SDRMapBySensorNumber, error) {
 
 	return out, nil
 }
+
+type SDRSensorNameMapBySensorNumber map[GeneratorID]map[SensorNumber]string
+
+// 获取SDR的SensorName和FRUDeviceLocator.DeviceIDBytes
+func (c *Client) GetSDRSensorNameMap(ctx context.Context) SDRSensorNameMapBySensorNumber {
+	var sdrMap = make(map[GeneratorID]map[SensorNumber]string)
+	var recordID uint16 = 0
+	for {
+		res, err := c.GetSDR(ctx, recordID)
+		if err != nil {
+			// fmt.Printf("GetSDR for recordID (%#0x) failed, err: %s", recordID, err)
+			break
+		}
+		sdr, err := ParseSDR(res.RecordData, res.NextRecordID)
+		if err != nil {
+			// fmt.Printf("ParseSDR failed, err: %s", err)
+			break
+		}
+
+		recordID = sdr.NextRecordID
+		if recordID == 0xffff {
+			break
+		}
+
+		var generatorID GeneratorID
+		var sensorNumber SensorNumber
+
+		recordType := sdr.RecordHeader.RecordType
+		switch recordType {
+		case SDRRecordTypeFullSensor:
+			generatorID = sdr.Full.GeneratorID
+			sensorNumber = sdr.Full.SensorNumber
+		case SDRRecordTypeCompactSensor:
+			generatorID = sdr.Compact.GeneratorID
+			sensorNumber = sdr.Compact.SensorNumber
+		}
+
+		if recordType != SDRRecordTypeFullSensor && recordType != SDRRecordTypeCompactSensor {
+			// ignored the SDR
+			continue
+		}
+		if _, ok := sdrMap[generatorID]; !ok {
+			sdrMap[generatorID] = make(map[SensorNumber]string)
+		}
+		sdrMap[generatorID][sensorNumber] = sdr.SensorName()
+	}
+
+	return sdrMap
+}
