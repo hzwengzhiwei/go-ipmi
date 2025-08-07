@@ -311,6 +311,11 @@ func (c *Client) GetSDRSensorNameMap(ctx context.Context) SDRSensorNameMapBySens
 		var sensorNumber SensorNumber
 
 		recordType := sdr.RecordHeader.RecordType
+		if recordType != SDRRecordTypeFullSensor && recordType != SDRRecordTypeCompactSensor && recordType != SDRRecordTypeEventOnly {
+			// ignored the SDR
+			continue
+		}
+
 		switch recordType {
 		case SDRRecordTypeFullSensor:
 			generatorID = sdr.Full.GeneratorID
@@ -318,12 +323,11 @@ func (c *Client) GetSDRSensorNameMap(ctx context.Context) SDRSensorNameMapBySens
 		case SDRRecordTypeCompactSensor:
 			generatorID = sdr.Compact.GeneratorID
 			sensorNumber = sdr.Compact.SensorNumber
+		case SDRRecordTypeEventOnly:
+			generatorID = sdr.EventOnly.GeneratorID
+			sensorNumber = sdr.EventOnly.SensorNumber
 		}
 
-		if recordType != SDRRecordTypeFullSensor && recordType != SDRRecordTypeCompactSensor {
-			// ignored the SDR
-			continue
-		}
 		if _, ok := sdrMap[generatorID]; !ok {
 			sdrMap[generatorID] = make(map[SensorNumber]string)
 		}
